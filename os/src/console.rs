@@ -1,5 +1,6 @@
 use crate::sbi::console_putchar;
 use core::fmt::{self, Write};
+// use spin::Mutex;
 
 struct Stdout;
 
@@ -24,7 +25,8 @@ impl Write for Stdout {
 }
 
 pub fn print(args: fmt::Arguments) {
-    Stdout.write_fmt(args).expect("print() error in console.rs!");
+    // static STDOUT: Mutex<Stdout> = Mutex::new(Stdout);
+    Stdout.write_fmt(args).unwrap();
 }
 
 /// want to implement print! macro as std

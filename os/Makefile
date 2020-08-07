@@ -4,7 +4,7 @@ kernel = target/$(target)/$(mode)/os
 image = target/$(target)/$(mode)/kernel.bin
 k210 = target/$(target)/$(mode)/k210.bin
 _k210 = target/$(target)/$(mode)/k210.kfpkg
-k210-serialport = /dev/ttyS5
+k210-serialport = /dev/ttyS17
 sbi ?= opensbi
 
 kernel:
@@ -13,10 +13,13 @@ kernel:
 image: kernel
 	rust-objcopy $(kernel) --strip-all -O binary $(image)
 
-k210: image
+k210-opensbi: image
 	\cp built/$(sbi).bin $(k210)
 	dd if=$(image) of=$(k210) bs=128K seek=1
 
+k210-rustsbi: image
+	\cp ../../rustsbi/target/riscv64gc-unknown-none-elf/debug/rustsbi-k210.bin $(k210)
+	dd if=$(image) of=$(k210) bs=128K seek=1
 
 _k210: image
 	mkdir built/temp
@@ -27,7 +30,10 @@ _k210: image
 	cp built/temp/k210.zip $(_k210)
 	rm -rf built/temp
 
-run-k210: k210
+run-k210: k210-opensbi
+	python3 built/kflash.py -p $(k210-serialport) -b 1500000 -t $(k210)
+
+run-k210-rustsbi: k210-rustsbi
 	python3 built/kflash.py -p $(k210-serialport) -b 1500000 -t $(k210)
 
 build: image
